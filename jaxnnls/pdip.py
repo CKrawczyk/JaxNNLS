@@ -1,3 +1,4 @@
+# Modification of https://github.com/kevin-tracy/qpax/blob/main/qpax/pdip.py
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp

@@ -1,3 +1,4 @@
+# modification of https://github.com/kevin-tracy/qpax/blob/main/qpax/pdip_relaxed.py
 import jax
 import jax.numpy as jnp
 

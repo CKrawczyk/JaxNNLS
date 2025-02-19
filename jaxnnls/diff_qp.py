@@ -1,3 +1,4 @@
+# modification of https://github.com/kevin-tracy/qpax/blob/main/qpax/diff_qp.py
 import jax
 import jax.numpy as jnp
 
