@@ -1,13 +1,35 @@
 # Modification of https://github.com/kevin-tracy/qpax/blob/main/qpax/pdip.py
+
+# Original license
+# Copyright (c) 2023 Kevin Tracy
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Modifications by Coleman Krawczyk 2025
+
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 
-jax.config.update("jax_enable_x64", True)
-
 MAX_ITER = 50
-EPSILON = 1e-10
-# IS_X64 = jax.config.jax_enable_x64
+# MODIFICATION: base tolerance on the current precision
+EPSILON = jnp.finfo(jnp.ones(1).dtype).eps * 5e3
 
 # MODIFICATION: use Cholesky decomposition
 # it is significantly faster
