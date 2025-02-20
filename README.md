@@ -2,7 +2,7 @@
 
 This package can be used for solving non-negative least square (NNLS) problems of the following form:
 
-```{math}
+```math
 \begin{align*}
 \underset{x}{\text{minimize}} & \quad \frac{1}{2}x^TQx - q^Tx \\
 \text{subject to} & \quad  x \geq 0
@@ -11,7 +11,7 @@ This package can be used for solving non-negative least square (NNLS) problems o
 
 where `Q` is positive definite. Or equivalently
 
-```{math}
+```math
 \begin{align*}
 \underset{x}{{\text{solve}}} & \quad Ax = b \\
 \text{subject to} & \quad  x \geq 0
@@ -20,7 +20,7 @@ where `Q` is positive definite. Or equivalently
 
 when you set
 
-```{math}
+```math
 \begin{align*}
 Q&=A^TA \\
 q&=A^Tb
