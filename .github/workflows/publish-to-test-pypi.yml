@@ -19,7 +19,8 @@ jobs:
     - name: Build
       run: flit build
     - name: Publish to Test PyPi
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.TEST_PYPI }}
-        repository_url: https://test.pypi.org/legacy/
+      run: flit publish
+      env:
+        FLIT_USERNAME: '__token__'
+        FLIT_PASSWORD: ${{ secrets.TEST_PYPI }}
+        FLIT_INDEX_URL: 'https://test.pypi.org/legacy/'

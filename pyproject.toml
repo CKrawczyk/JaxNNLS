@@ -22,6 +22,11 @@ test = [
     "coverage[toml] >=6.3.2",
     "Flake8-pyproject >=1.2.3",
 ]
+doc = [
+    "myst-nb >=0.15.0",
+    "sphinx >=4.5.0",
+    "sphinx_rtd_theme >=1.0.0"
+]
 
 [tool.coverage.run]
 omit = ["*test*"]

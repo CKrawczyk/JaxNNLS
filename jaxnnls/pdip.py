@@ -134,8 +134,12 @@ def solve_kkt_rhs(s, z, P_inv_vec, L_H, v1, v2, v3):
 
     Returns
     -------
-    _type_
-        _description_
+    dx : jax.numpy.array
+        (n,) step size for primal vector
+    ds : jax.numpy.array
+        (n,) step size for slack vector
+    dz : jax.numpy.array
+        (n,) step size for dual vector
     '''
     r2 = -v3 + v2 / z
     p1 = -v1 - P_inv_vec * r2

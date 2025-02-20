@@ -19,6 +19,8 @@ jobs:
     - name: Build
       run: flit build
     - name: Publish to PyPi
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.PYPI }}
+      run: flit publish
+      env:
+        FLIT_USERNAME: '__token__'
+        FLIT_PASSWORD: ${{ secrets.PYPI }}
+        FLIT_INDEX_URL: 'https://upload.pypi.org/legacy/'
