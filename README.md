@@ -2,23 +2,30 @@
 
 This package can be used for solving non-negative least square (NNLS) problems of the following form:
 
-$$
+```{math}
 \begin{align*}
 \underset{x}{\text{minimize}} & \quad \frac{1}{2}x^TQx - q^Tx \\
 \text{subject to} & \quad  x \geq 0
 \end{align*}
-$$
+```
 
-where $Q \succeq 0$. Or equivalently
+where `Q` is positive definite. Or equivalently
 
-$$
+```{math}
 \begin{align*}
 \underset{x}{{\text{solve}}} & \quad Ax = b \\
 \text{subject to} & \quad  x \geq 0
 \end{align*}
-$$
+```
 
-where $A^TA = Q$ and $A^Tb = q$.
+when you set
+
+```{math}
+\begin{align*}
+Q&=A^TA \\
+q&=A^Tb
+\end{align*}
+```
 
 This solver can be combined with JAX's `jit` and `vmap` functionality, as well as differentiated with reverse-mode `grad`. 
 
