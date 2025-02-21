@@ -100,8 +100,9 @@ Q&amp;=A^TA \\
 q&amp;=A^Tb
 \end{align*}\end{split}\]</div>
 <p>This solver can be combined with JAX’s <code class="docutils literal notranslate"><span class="pre">jit</span></code> and <code class="docutils literal notranslate"><span class="pre">vmap</span></code> functionality, as well as differentiated with reverse-mode <code class="docutils literal notranslate"><span class="pre">grad</span></code>.</p>
-<p>The NNLS problem is solved with a primal-dual interior point algorithm.  This code is a <strong>modification</strong> on the <a class="reference external" href="https://github.com/kevin-tracy/qpax/blob/main/README.md"><code class="docutils literal notranslate"><span class="pre">qpax</span></code></a> package, but in the special case of NNLS.  Because of the simplifications in this special case the resulting code is significantly faster when $Q$ large in size.</p>
+<p>The NNLS problem is solved with a primal-dual interior point algorithm.  This code is a <strong>modification</strong> on the <a class="reference external" href="https://github.com/kevin-tracy/qpax/blob/main/README.md">qpax</a> package, but in the special case of NNLS.  Because of the simplifications in this special case the resulting code is significantly faster when $Q$ large in size.</p>
 <p>As with the <code class="docutils literal notranslate"><span class="pre">qpax</span></code> code, derivative smoothing can be applied to the gradients.</p>
+<p>Link to the <a class="reference external" href="https://ckrawczyk.github.io/JaxNNLS/">documentation</a>.</p>
 </section>
 
 
