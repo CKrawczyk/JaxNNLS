@@ -8,10 +8,15 @@ Welcome to jaxnnls's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Documentation:
 
    README
-   other_functions
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API:
+
+   full_api
 
 Indices and tables
 ==================
