@@ -29,7 +29,7 @@ q&=A^Tb
 
 This solver can be combined with JAX's `jit` and `vmap` functionality, as well as differentiated with reverse-mode `grad`. 
 
-The NNLS problem is solved with a primal-dual interior point algorithm.  This code is a **modification** on the [qpax](https://github.com/kevin-tracy/qpax/blob/main/README.md) package, but in the special case of NNLS.  Because of the simplifications in this special case the resulting code is significantly faster when $Q$ large in size.
+The NNLS problem is solved with a primal-dual interior point algorithm.  This code is a **modification** on the [qpax](https://github.com/kevin-tracy/qpax/blob/main/README.md) package, but in the special case of NNLS.  Because of the simplifications in this special case the resulting code is significantly faster when `Q` large in size.
 
 As with the `qpax` code, derivative smoothing can be applied to the gradients.
 
