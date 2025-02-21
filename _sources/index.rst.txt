@@ -11,6 +11,7 @@ Welcome to jaxnnls's documentation!
    :caption: Documentation:
 
    README
+   examples
 
 .. toctree::
    :maxdepth: 2

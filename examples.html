@@ -1,0 +1,476 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examples &mdash; jaxnnls 1.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=292eb321"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Primal Dual Interior Points" href="full_api.html" />
+    <link rel="prev" title="JaxNNLS" href="README.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            jaxnnls
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">JaxNNLS</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#solving-a-batch-of-problems">Solving a batch of problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#differentiating-a-nnls">Differentiating a NNLS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#diagnostic-information">Diagnostic information</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="full_api.html">Primal Dual Interior Points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="full_api.html#module-jaxnnls.diff_qp">Implicit Differentiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="full_api.html#module-jaxnnls.pdip_relaxed">Relaxed Primal Dual Interior Points</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">jaxnnls</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/examples.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h1>
+<p>In this example we will be looking at the basic usage of <code class="docutils literal notranslate"><span class="pre">jaxnnls</span></code> to solve a non-negative least squares (NNLS) problem.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>While the algorithm can sometimes work with Jax’s default 32-bit precision, it is recommended that you enable 64-bit precision.  The Cholesky decompositions used can become unstable at lower precision and lead to <code class="docutils literal notranslate"><span class="pre">nan</span></code> results.</p>
+</div>
+<section id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
+<p>To begin we will write a function that randomly generates a non-trivial NNLS system.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+
+<span class="c1"># enable 64 bit mode</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jaxnnls</span>
+
+<span class="c1"># adjust the print options to make easier to read</span>
+<span class="n">jnp</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_random_qp</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">nx</span><span class="p">):</span>
+    <span class="c1"># split the random key</span>
+    <span class="n">key_q</span><span class="p">,</span> <span class="n">key_mask</span><span class="p">,</span> <span class="n">key_x</span><span class="p">,</span> <span class="n">key_z</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="c1"># make a positive definite Q matrix</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key_q</span><span class="p">,</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">nx</span><span class="p">))</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Q</span>
+    <span class="c1"># make the primal and dual variables (all positive)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key_x</span><span class="p">,</span> <span class="p">(</span><span class="n">nx</span><span class="p">,)))</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key_z</span><span class="p">,</span> <span class="p">(</span><span class="n">nx</span><span class="p">,)))</span>
+    <span class="c1"># mask out 50% of the values to zero</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">key_mask</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]),</span> <span class="p">(</span><span class="n">nx</span><span class="p">,))</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="c1"># make the &quot;observed&quot; vector that has x as it&#39;s NNLS solution</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">Q</span> <span class="o">@</span> <span class="n">x</span> <span class="o">-</span> <span class="n">z</span>
+    <span class="k">return</span> <span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now let’s make a Jax random key and generates an example system with a 5x5 <code class="docutils literal notranslate"><span class="pre">Q</span></code> matrix.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">_key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">key</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">_key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">_key</span><span class="p">)</span>
+
+<span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">generate_random_qp</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Next let’s find the unconstrained solution using <code class="docutils literal notranslate"><span class="pre">jnp.linalg.solve</span></code></p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[-0.49537474 -4.19172978  2.4482249   2.57614299 -3.93564659]
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can clearly see that this leads to negative values in the solution.  Now let’s take the same system but use the NNLS solver.  If you are only interested in the primal solution (e.g. <code class="docutils literal notranslate"><span class="pre">x</span></code>) we can use <code class="docutils literal notranslate"><span class="pre">jaxnnls.solve_nnls_primal</span></code>.  If you want both the primal and dual solutions (along with some extra diagnostic information) you should use <code class="docutils literal notranslate"><span class="pre">jaxnnls.solve_nnls</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">jit_solve_nnls_primal</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">jaxnnls</span><span class="o">.</span><span class="n">solve_nnls_primal</span><span class="p">)</span>
+<span class="n">x_solve</span> <span class="o">=</span> <span class="n">jit_solve_nnls_primal</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x_solve</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0.24240651 0.         0.20491032 0.05982262 0.        ]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we can see the solution being found is all positive as desired.  We can also check this against the known solution.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_solve</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>True
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="solving-a-batch-of-problems">
+<h2>Solving a batch of problems<a class="headerlink" href="#solving-a-batch-of-problems" title="Link to this heading"></a></h2>
+<p>The solver is full compatible with <code class="docutils literal notranslate"><span class="pre">vmap</span></code> for solving a system of problems at the same time.  First we will generate set of random problems with known solutions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">key</span><span class="p">,</span> <span class="n">_key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">_key</span><span class="p">)</span>
+
+<span class="n">Qs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">zs</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">generate_random_qp</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we will <code class="docutils literal notranslate"><span class="pre">jit</span></code> and <code class="docutils literal notranslate"><span class="pre">vmap</span></code> the solver and apply it to our set of problems.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">batch_nnls</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">vmap</span><span class="p">(</span><span class="n">jaxnnls</span><span class="o">.</span><span class="n">solve_nnls_primal</span><span class="p">,</span> <span class="n">in_axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+<span class="n">batch_xs</span> <span class="o">=</span> <span class="n">batch_nnls</span><span class="p">(</span><span class="n">Qs</span><span class="p">,</span> <span class="n">qs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">batch_xs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[[0.         0.         0.         0.         0.75465726]
+ [0.         0.2847717  0.26074245 0.45316464 0.        ]
+ [0.9906791  0.         0.63885713 0.44994772 0.        ]
+ [0.         0.252907   0.         0.         0.79185027]
+ [3.32383184 1.09270692 0.         0.13081915 0.        ]
+ [0.95259472 3.39704618 0.         0.         0.91332539]
+ [0.16156309 0.24036181 0.75923941 0.         0.52760814]
+ [0.01559403 0.13851779 0.         1.52683184 0.        ]
+ [0.65993688 1.0579556  0.60431438 0.93401873 0.        ]
+ [0.         0.21490957 0.09996912 0.61789174 0.        ]
+ [1.35246462 0.         1.22011375 0.41823024 0.        ]
+ [0.         0.80765402 0.         1.47898561 0.09715588]
+ [0.         0.36266893 2.44237877 0.09065782 0.        ]
+ [0.         0.         1.60061884 0.         0.28679851]
+ [0.         0.         0.60722848 0.86527315 0.        ]
+ [0.         0.53199946 2.24017961 0.74248151 0.16909305]
+ [0.         0.         0.01502807 0.9199673  0.20331264]
+ [0.         0.46073631 0.         0.14101541 0.14167207]
+ [1.18345423 0.         0.         1.17427011 1.03613143]
+ [0.54701621 0.24974786 0.         0.         1.66293739]]
+</pre></div>
+</div>
+</div>
+</div>
+<p>We see that all the solutions are indeed position as expected.  Now let’s check if they match the known solutions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">batch_xs</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>True
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="differentiating-a-nnls">
+<h2>Differentiating a NNLS<a class="headerlink" href="#differentiating-a-nnls" title="Link to this heading"></a></h2>
+<p>If we are only looking at the primal solution with <code class="docutils literal notranslate"><span class="pre">jaxnnls.solve_nnls_primal</span></code> we can use automatic differentiation.  For this example we will set up a simple loss function and calculated the gradients of that loss with respect to both <code class="docutils literal notranslate"><span class="pre">Q</span></code> and <code class="docutils literal notranslate"><span class="pre">q</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">loss</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">target_kappa</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">jaxnnls</span><span class="o">.</span><span class="n">solve_nnls_primal</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">target_kappa</span><span class="o">=</span><span class="n">target_kappa</span><span class="p">)</span>
+    <span class="n">x_bar</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">x_bar</span>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span> <span class="n">residual</span><span class="p">)</span>
+
+
+<span class="n">loss_and_grad</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">value_and_grad</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+
+<span class="n">l</span><span class="p">,</span> <span class="p">(</span><span class="n">dl_dQ</span><span class="p">,</span> <span class="n">dl_dq</span><span class="p">)</span> <span class="o">=</span> <span class="n">loss_and_grad</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>4.090049007977832
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dl_dQ</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[[0.19053153 0.         0.09559879 0.14735349 0.        ]
+ [0.         0.         0.         0.         0.        ]
+ [0.09559879 0.         0.02547621 0.10840558 0.        ]
+ [0.14735349 0.         0.10840558 0.06112563 0.        ]
+ [0.         0.         0.         0.         0.        ]]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dl_dq</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[-0.78600008 -0.         -0.12432857 -1.02178115 -0.        ]
+</pre></div>
+</div>
+</div>
+</div>
+<p>In the above example we set <code class="docutils literal notranslate"><span class="pre">target_kappa=0</span></code>.  This means no smoothing will be applied to the gradients.  In general, when dealing with constrained solvers like this, the gradients can be discontinuous.  In this example we see that we only have non-zero gradient values for the elements of <code class="docutils literal notranslate"><span class="pre">x</span></code> that are non-zero when solved.</p>
+<p>If we were aiming to minimize our loss using a gradient decent method, we would only be able to move a subset of our parameters at a time because of this.  By increasing the <code class="docutils literal notranslate"><span class="pre">target_kappa</span></code> value these discontinuities will be smoothed out, providing more useful information for gradient based optimizers.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">l_kappa</span><span class="p">,</span> <span class="p">(</span><span class="n">dl_dQ_kappa</span><span class="p">,</span> <span class="n">dl_dq_kappa</span><span class="p">)</span> <span class="o">=</span> <span class="n">loss_and_grad</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">target_kappa</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">l_kappa</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>4.090049007977832
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dl_dQ_kappa</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[[0.2432692  0.12769956 0.13826567 0.10431171 0.00039145]
+ [0.12769956 0.02300606 0.09821804 0.03492767 0.00032613]
+ [0.13826567 0.09821804 0.06365574 0.07083384 0.00015223]
+ [0.10431171 0.03492767 0.07083384 0.03579759 0.00022219]
+ [0.00039145 0.00032613 0.00015223 0.00022219 0.0000003 ]]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dl_dq_kappa</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[-0.96254868 -0.91475926 -0.30862555 -0.59715493 -0.00042679]
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can see that the loss value has not changed as the smoothing is only applied to the gradients.  As for the two gradients, all the values have become non-zero.  Now if gradient decent was applied <strong>all</strong> the value would move rather than just a subset of them.</p>
+<p>For more information about the smoothing process please refer to the <a class="reference external" href="https://arxiv.org/abs/2406.11749">qpax paper</a>.</p>
+</section>
+<section id="diagnostic-information">
+<h2>Diagnostic information<a class="headerlink" href="#diagnostic-information" title="Link to this heading"></a></h2>
+<p>In all the examples above we used <code class="docutils literal notranslate"><span class="pre">jaxnnls.solve_nnls_primal</span></code> as we were only interested in the primal solution.  If you want the dual solution or more diagnostic information the <code class="docutils literal notranslate"><span class="pre">jaxnnls.solve_nnls</span></code> function is available.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">converged</span><span class="p">,</span> <span class="n">number_iterations</span> <span class="o">=</span> <span class="n">jaxnnls</span><span class="o">.</span><span class="n">solve_nnls</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The outputs are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>: the primal solution</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">s</span></code>: the slack variable (will be the same as <code class="docutils literal notranslate"><span class="pre">x</span></code> if the algorithm converged)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">z</span></code>: the dual solution</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">converged</span></code>: flag that is <code class="docutils literal notranslate"><span class="pre">1</span></code> if the algorithm converged and <code class="docutils literal notranslate"><span class="pre">0</span></code> otherwise</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">number_iterations</span></code>: the number of steps the algorithm took to converged</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The code will run a maximum of 50 steps before stopping and reporting it did not converge.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Automatic differentiation is only available for <code class="docutils literal notranslate"><span class="pre">jaxnnls.solve_nnls_primal</span></code> not this version of the function.</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0.24240651 0.         0.20491032 0.05982262 0.        ]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0.24240651 0.         0.20491032 0.05982262 0.        ]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0.         0.02085643 0.         0.         1.43297883]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">converged</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>1
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">number_iterations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>10
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="README.html" class="btn btn-neutral float-left" title="JaxNNLS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="full_api.html" class="btn btn-neutral float-right" title="Primal Dual Interior Points" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Coleman Krawczyk.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
