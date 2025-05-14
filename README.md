@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/935951508.svg)](https://doi.org/10.5281/zenodo.15410304)
+
 # JaxNNLS
 
 This package can be used for solving non-negative least square (NNLS) problems of the following form:
